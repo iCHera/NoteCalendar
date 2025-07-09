@@ -16,7 +16,15 @@
       <tbody>
         <tr v-for="week in weeks" :key="week">
           <td v-for="day in week" :key="day" class="count-day">
-            <span v-if="day" class="day"> {{ day }} </span>
+            <span 
+            v-if="day"
+            @click="selectDay(day)"
+            :class="{
+              selected: day === selectDate, 
+              today: day === dayNow,
+              day
+            }"
+            > {{ day }} </span>
           </td>
         </tr>
       </tbody>
@@ -25,36 +33,61 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue' 
+  import { computed, ref } from 'vue' 
+  
+  const dayNow = ref(new Date().getDate());
+  const currentMonth = ref(new Date().getMonth());
+  const currentYears = ref(new Date().getFullYear());
 
-  const date = new Date();
+  // Определение дней в месяце 
+  const daysInMonth = computed(() => { 
+    return new Date(currentYears.value, currentMonth.value + 1, 0).getDate();
+  })
 
-  const dayNow = date.getDate();
-  const dayCountNow = date.getDay();
-  const monthNow = date.getMonth();
-  const yearNow = date.getFullYear();
-  const daysInMonth = new Date(yearNow, monthNow + 1, 0);
-  const startDay = (new Date(yearNow, monthNow, 1) + 6) % 7
+  // Определение первого дня в месяце
+  const startDay = computed(() => { 
+    let day = new Date(currentYears.value, currentMonth.value, 1).getDay()
+    return (day + 6) % 7    
+  })
 
-  let Month;
-  const arrNameMonth = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-  for (let i = 0; i < arrNameMonth.length; i++) { 
-    if (i == monthNow) { 
-      Month = arrNameMonth[i];
+  // Заполнение массива датами
+  const calendar = computed(() => {
+    const days = []
+    for(let i = 0; i < startDay.value; i++) { 
+      days.push(null)
     }
-  }
+    for(let i = 1; i < daysInMonth.value; i++) { 
+      days.push(i);
+    }
+    return days
+  })
 
-  const calendar = []
-  for(let i = 0; i <= startDay; i++){
-    calendar.push(null)
-  }
-  for (let i = 0; i <= daysInMonth.getDate(); i++) { 
-    calendar.push(i);
-  }
+  // Из массива разбиваю на недели
+  const weeks = computed(() => {
+    const week = [] 
+    for (let i = 0; i <= calendar.value.length; i += 7) { 
+      week.push(calendar.value.slice(i, i + 7));
+    }
+    return week
+  })
 
-  const weeks = []
-  for (let i = 0; i <= calendar.length; i += 7){
-    weeks.push(calendar.slice(i, i + 7))
+    // Определения что за месяц сейчас
+  const arrNameMonth = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+  const Month = computed(() => arrNameMonth[currentMonth.value])
+
+  // Функция для работы с выбранной датой
+  const selectDate = ref({
+    day: null, 
+    month: null, 
+    year: null,
+  })  
+
+  function selectDay(day) { 
+    selectDate.value = { 
+      day, 
+      month: currentMonth.value, 
+      year: currentYears.value, 
+    }
   }
 
 </script>
@@ -85,14 +118,24 @@
   }
 
   .count-day {
+    text-align: center;
+    vertical-align: middle;
+  }
 
+  .today {
+    background-color: red;
+    color: white;
+    border-radius: 10px;
   }
 
   .day { 
-    display: flex;
+    display: inline-flex;
     justify-content: center;
+    align-items: center;
     font-size: 20px;
     cursor: pointer;
+    width: 35px;
+    height: 35px;
   }
 
 </style>
