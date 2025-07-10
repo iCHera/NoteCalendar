@@ -1,6 +1,5 @@
 <template>
   <div class="Calendar">
-    <h1 class="Month">{{ Month }}</h1>
     <table class="table">
       <thead>
         <tr>
@@ -18,11 +17,11 @@
           <td v-for="day in week" :key="day" class="count-day">
             <span 
             v-if="day"
-            @click="selectDay(day)"
+            @click="onDayClick(day)"
             :class="{
-              selected: day === selectDate, 
-              today: day === dayNow,
-              day
+              selected: isSelected(day),
+              today: isToday(day),
+              day: true,
             }"
             > {{ day }} </span>
           </td>
@@ -33,62 +32,65 @@
 </template>
 
 <script setup>
-  import { computed, ref } from 'vue' 
-  
-  const dayNow = ref(new Date().getDate());
-  const currentMonth = ref(new Date().getMonth());
-  const currentYears = ref(new Date().getFullYear());
+  import { computed } from 'vue';
 
-  // Определение дней в месяце 
+  const today = new Date()
+  const emit = defineEmits(['date-selected']);
+
+  const props = defineProps({ 
+    day: Number,
+    month: Number,
+    year: Number, 
+    selectedFullDate: Object,
+  })
+
   const daysInMonth = computed(() => { 
-    return new Date(currentYears.value, currentMonth.value + 1, 0).getDate();
+    return new Date(props.year, props.month + 1, 0).getDate();
   })
 
-  // Определение первого дня в месяце
-  const startDay = computed(() => { 
-    let day = new Date(currentYears.value, currentMonth.value, 1).getDay()
-    return (day + 6) % 7    
+  const startDay = computed(() => {
+    let day = new Date(props.year, props.month, 1).getDay();
+    return (day === 0) ? 6 : day - 1;
   })
 
-  // Заполнение массива датами
-  const calendar = computed(() => {
-    const days = []
-    for(let i = 0; i < startDay.value; i++) { 
-      days.push(null)
-    }
-    for(let i = 1; i < daysInMonth.value; i++) { 
-      days.push(i);
-    }
-    return days
+  const calendar = computed(() => { 
+    const days = [];
+    for (let i = 0; i < startDay.value; i++) { days.push(null) };
+    for (let i = 1; i <= daysInMonth.value; i++) { days.push(i) };
+    return days;
   })
 
-  // Из массива разбиваю на недели
-  const weeks = computed(() => {
-    const week = [] 
-    for (let i = 0; i <= calendar.value.length; i += 7) { 
-      week.push(calendar.value.slice(i, i + 7));
-    }
-    return week
+  const weeks = computed(() => { 
+    const week = []
+    const w = [...calendar.value]
+    for (let i = 0; i < w.length; i += 7) { week.push(w.slice(i, i + 7)) }
+    return week;
   })
 
-    // Определения что за месяц сейчас
-  const arrNameMonth = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-  const Month = computed(() => arrNameMonth[currentMonth.value])
-
-  // Функция для работы с выбранной датой
-  const selectDate = ref({
-    day: null, 
-    month: null, 
-    year: null,
-  })  
-
-  function selectDay(day) { 
-    selectDate.value = { 
+  //для emit в слушатель App.vue
+  function onDayClick(day) { 
+    const select = { 
       day, 
-      month: currentMonth.value, 
-      year: currentYears.value, 
+      month: props.month,
+      year: props.year,
     }
+    emit('date-selected', select)
   }
+  
+  //Проверка на дату которую нажали для класса selected 
+  function isSelected(day) { 
+  if (!props.selectedFullDate) return false;
+  return props.selectedFullDate.day === day &&
+         props.selectedFullDate.month === props.month &&
+         props.selectedFullDate.year === props.year;
+  }
+
+  function isToday(day) { 
+    return today.getDate() === day && 
+           today.getMonth() === props.month && 
+           today.getFullYear() === props.year;
+  }
+
 
 </script>
 
@@ -136,6 +138,12 @@
     cursor: pointer;
     width: 35px;
     height: 35px;
+  }
+
+  .selected{ 
+    background-color: black;
+    color: white;
+    border-radius: 10px;
   }
 
 </style>
