@@ -34,14 +34,6 @@
     return days;
   })
 
-  // Еще один массив который разбивает месяц на недели
-  const weeks = computed(() => { 
-    const week = []
-    const w = [...calendar.value]
-    for (let i = 0; i < w.length; i += 7) { week.push(w.slice(i, i + 7)) }
-    return week;
-  })
-
   //для emit в слушатель App.vue
   function onDayClick(day) { 
     const select = { 
