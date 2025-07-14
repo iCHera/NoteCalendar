@@ -1,42 +1,13 @@
-<template>
-  <div class="Calendar">
-    <table class="table">
-      <thead>
-        <tr>
-          <th class="day-week">Пн</th>
-          <th class="day-week">Вт</th>
-          <th class="day-week">Ср</th>
-          <th class="day-week">Чт</th>
-          <th class="day-week">Пт</th>
-          <th class="day-week">Сб</th>
-          <th class="day-week">Вс</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="week in weeks" :key="week">
-          <td v-for="day in week" :key="day" class="count-day">
-            <span 
-            v-if="day"
-            @click="onDayClick(day)"
-            :class="{
-              selected: isSelected(day),
-              today: isToday(day),
-              day: true,
-            }"
-            > {{ day }} </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
 <script setup>
   import { computed } from 'vue';
 
+  // Переменная даты
   const today = new Date()
+  
+  // Емит для слушателя handleDateSelection в App.vue
   const emit = defineEmits(['date-selected']);
 
+  //Пропс
   const props = defineProps({ 
     day: Number,
     month: Number,
@@ -44,15 +15,18 @@
     selectedFullDate: Object,
   })
 
+  // Определение дней в месяце
   const daysInMonth = computed(() => { 
     return new Date(props.year, props.month + 1, 0).getDate();
   })
 
+  // С какого дня пн, вт и тд начинается неделя
   const startDay = computed(() => {
     let day = new Date(props.year, props.month, 1).getDay();
     return (day === 0) ? 6 : day - 1;
   })
 
+  // Массив дат в месяце
   const calendar = computed(() => { 
     const days = [];
     for (let i = 0; i < startDay.value; i++) { days.push(null) };
@@ -60,6 +34,7 @@
     return days;
   })
 
+  // Еще один массив который разбивает месяц на недели
   const weeks = computed(() => { 
     const week = []
     const w = [...calendar.value]
@@ -77,7 +52,7 @@
     emit('date-selected', select)
   }
   
-  //Проверка на дату которую нажали для класса selected 
+  // Проверка на дату которую нажали для класса selected 
   function isSelected(day) { 
   if (!props.selectedFullDate) return false;
   return props.selectedFullDate.day === day &&
@@ -85,65 +60,98 @@
          props.selectedFullDate.year === props.year;
   }
 
+  // Для класса CSS проверка на сегодняшнее число
   function isToday(day) { 
     return today.getDate() === day && 
            today.getMonth() === props.month && 
            today.getFullYear() === props.year;
   }
 
-
 </script>
 
-<style>
+<template>
+  <div class="Calendar">
+      <div class="header-calendar">
+          <div class="days-in-week">Пн</div>
+          <div class="days-in-week">Вт</div>
+          <div class="days-in-week">Ср</div>
+          <div class="days-in-week">Чт</div>
+          <div class="days-in-week">Пт</div>
+          <div class="days-in-week">Сб</div>
+          <div class="days-in-week">Вс</div>
+      </div>
+      <div class="body-calendar">
+        <div v-for="(day, index) in calendar" 
+        :key="index"
+        :class="{
+          countWeek: true,
+          }"
+          >
+            <span 
+            v-if="day !== null"
+            @click="onDayClick(day)"
+            :class="{
+              selected: isSelected(day),
+              today: isToday(day),
+              day: true,
+            }"
+            > {{ day }} </span>
+            <span v-else>&nbsp;</span>
+        </div>
+      </div>
+  </div>
+</template>
+
+<style scoped>
 
   .Calendar {
+    width: 100%;
+    max-width: 600px;
     display: flex;
     flex-direction: column;
-    max-width: 1000px;
-    max-height: 1000px;
-  }
-
-  .Month {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0 30px 0 0;
-    margin: 0;
-  }
-
-  .table { 
-    width: 600px;
-    height: 600px;
-  }
-
-  .day-week {
-    font-size: 20px;
-  }
-
-  .count-day {
+    justify-content: space-between;
     text-align: center;
-    vertical-align: middle;
   }
 
-  .today {
-    background-color: red;
-    color: white;
-    border-radius: 10px;
+  .header-calendar {
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    padding-bottom: 40px;
+  }
+
+  .days-in-week{
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .body-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 50px;
+  }
+
+  .countWeek {
+    text-align: center;
+    font-size: 25px;
   }
 
   .day { 
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
     font-size: 20px;
     cursor: pointer;
-    width: 35px;
-    height: 35px;
   }
 
-  .selected{ 
+  .today{ 
+    padding: 7px;
+    border-radius: 10px;
+    background-color: red;
+  }
+
+  .selected { 
+    padding: 7px;
+    border-radius: 10px;
     background-color: black;
     color: white;
-    border-radius: 10px;
   }
 
 </style>
