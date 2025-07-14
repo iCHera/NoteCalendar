@@ -1,7 +1,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import Calendar from './components/Calendar.vue';
-  import SliderMonth from './components/sliderMonth.vue';
+  import SliderMonth from './components/SliderMonth.vue';
 
   // Переменные для работы
   const selectedDate = ref(null)
