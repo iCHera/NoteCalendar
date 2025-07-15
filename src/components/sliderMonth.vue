@@ -63,5 +63,19 @@
 
     .button { 
         cursor: pointer;
+        color: white;
+        background-color: black;
+        border-radius: 7px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0; 
+        padding: 5px 10px;
+        transition: 0.7s;
+    }
+
+    .button:hover { 
+        background-color: #dc3545;
     }
 </style>

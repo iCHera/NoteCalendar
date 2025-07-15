@@ -2,6 +2,7 @@
   import { ref, computed } from 'vue';
   import Calendar from './components/Calendar.vue';
   import SliderMonth from './components/SliderMonth.vue';
+  import NoteItems from './components/NoteItems.vue';
 
   // Переменные для работы
   const selectedDate = ref(null)
@@ -29,6 +30,45 @@
     currentDate.value = backSlideMonth
   }
 
+  // Все заметки что есть
+  const allNote = ref({})
+
+  // Определение даты для 
+  const notesForSelectedDate = computed(() => { 
+    if(!selectedDate.value) return [];
+    const dateKey = `${selectedDate.value.year}-${selectedDate.value.month}-${selectedDate.value.day}`;
+    return allNote.value[dateKey] || []
+  })
+
+  // Добавление заметки
+  function addNote(noteText) { 
+    if(!selectedDate.value) return;
+    const dateKey = `${selectedDate.value.year}-${selectedDate.value.month}-${selectedDate.value.day}`;
+    
+    if (!allNote.value[dateKey]) { 
+      allNote.value[dateKey] = []
+    }
+
+    const newNote = { 
+      id: new Date(),
+      text: noteText,
+    }
+
+    allNote.value[dateKey].push(newNote)
+  }
+
+  // Удаление заметки
+  function deleteNote(noteId) { 
+    if(!selectedDate.value) return;
+    const dateKey = `${selectedDate.value.year}-${selectedDate.value.month}-${selectedDate.value.day}`;
+    allNote.value[dateKey] = allNote.value[dateKey].filter(note => note.id !== noteId)
+  }
+
+  // Закрытие заметок
+  function closeNote() { 
+    selectedDate.value = null
+  }
+
 </script>
 
 <template>
@@ -53,13 +93,19 @@
      />
     </div>
 
-      <div v-if="selectedDate" class="info">
-       Выбрана дата: {{ selectedDate.day }}.{{ selectedDate.month + 1 }}.{{ selectedDate.year }}
-     </div>
+    <div v-if="selectedDate !== null">
+      <NoteItems
+      :select-date="selectedDate"
+      :notes="notesForSelectedDate"  
+      @close-note="closeNote"
+      @add-note="addNote"
+      @delete-note="deleteNote"
+      />
+    </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 
   .app-container{ 
     max-width: 600px;
@@ -71,7 +117,4 @@
     justify-content: center;
   }
 
-  .info { 
-    padding-top: 50px;
-  }
 </style>
