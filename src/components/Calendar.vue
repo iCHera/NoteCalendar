@@ -136,7 +136,8 @@
   .today{ 
     padding: 7px;
     border-radius: 10px;
-    background-color: red;
+    background-color: black;
+    color: white;
   }
 
   .selected { 

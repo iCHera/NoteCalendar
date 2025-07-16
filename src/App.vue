@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, compile } from 'vue';
   import Calendar from './components/Calendar.vue';
   import SliderMonth from './components/SliderMonth.vue';
   import NoteItems from './components/NoteItems.vue';
@@ -52,6 +52,7 @@
     const newNote = { 
       id: new Date(),
       text: noteText,
+      complete: 'isFasle',
     }
 
     allNote.value[dateKey].push(newNote)
@@ -62,6 +63,17 @@
     if(!selectedDate.value) return;
     const dateKey = `${selectedDate.value.year}-${selectedDate.value.month}-${selectedDate.value.day}`;
     allNote.value[dateKey] = allNote.value[dateKey].filter(note => note.id !== noteId)
+  }
+
+  // Изменение complete на выполнено
+  function completeNote(noteId) { 
+  const dateKey = `${selectedDate.value.year}-${selectedDate.value.month}-${selectedDate.value.day}`;
+  const currentNotes = allNote.value[dateKey];
+  const updatedNotes = currentNotes.map((note) => {
+    if (note.id === noteId) return { ...note, complete: 'isTrue' };
+    else return note;
+  });
+  allNote.value[dateKey] = updatedNotes;
   }
 
   // Закрытие заметок
@@ -100,6 +112,7 @@
       @close-note="closeNote"
       @add-note="addNote"
       @delete-note="deleteNote"
+      @complete-note="completeNote"
       />
     </div>
   </div>

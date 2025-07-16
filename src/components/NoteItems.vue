@@ -1,5 +1,5 @@
 <script setup>
-    import { ref } from 'vue'
+    import { computed, ref } from 'vue'
     
     const props = defineProps({ 
         selectDate: Object,
@@ -9,10 +9,15 @@
     const emit = defineEmits([
         'add-note',
         'delete-note',
-        'close-note'
+        'close-note', 
+        'complete-note'
     ])
 
     const noteText = ref('')
+    const dayNow = new Date()
+    const selectDateCheck = computed(() => { 
+        return new Date(props.selectDate.year, props.selectDate.month, props.selectDate.day)
+    })
 
     function handlerAddnote() { 
         if(noteText.value.trim()) {
@@ -21,8 +26,12 @@
         }
     }
 
-    function handlerDeletenote(noteId) { 
+    function handlerDeleteNote(noteId) { 
         emit('delete-note', noteId)
+    }
+
+    function handlerCompleteNote(noteId) { 
+        emit('complete-note', noteId)
     }
 
     function closeNote() { 
@@ -37,7 +46,8 @@
             <h1 class="note-date"> Выбрана дата: {{ props.selectDate.day }}.{{ props.selectDate.month + 1 }}.{{ props.selectDate.year }} </h1>
             <button class="close-note-container-button" @click="closeNote"> X </button>
         </div>
-        <div class="note-item">
+        <div class="note-item" v-if="dayNow <= selectDateCheck  || 
+        (dayNow.getDate() === selectDateCheck.getDate() && dayNow.getMonth() === selectDateCheck.getMonth() && dayNow.getFullYear() === selectDateCheck.getFullYear())">
             <input 
             type="text"
             placeholder="Введите новую заметку..."
@@ -51,10 +61,13 @@
         </div>
 
         <ol v-if="props.notes.length > 0" class="ol-list">
-            <li v-for="note in props.notes" :key="note.id" class="li-list">
-                <div class="div-li-list">
-                    <span class="note-text"> {{ note.text }} </span>
-                    <button @click="handlerDeletenote(note.id)" class="delete-button"> X  </button>
+            <li v-for="(note, index) in props.notes" :key="note.id" class="li-list">
+                <div class="div-li-list" :class="{'is-completed': note.complete === 'isTrue'}">
+                    <span class="note-text"> {{ index + 1 }} {{ note.text }} </span>
+                    <div class="note-list-buton">
+                        <button @click="handlerCompleteNote(note.id)" v-if="note.complete !== 'isTrue'" class="completed-button">✓</button>
+                        <button @click="handlerDeleteNote(note.id)" class="delete-button"> X </button>
+                    </div>
                 </div>
             </li>
         </ol>
@@ -132,12 +145,12 @@
 
     .ol-list {
         margin: 0;
-        padding: 20px 0 0 20px;
-        padding-top: 20px;
+        padding: 10px 0 0 0;
     }
 
     .li-list {
         padding-top: 10px;
+        list-style: none;
     }
 
     .div-li-list{ 
@@ -145,12 +158,45 @@
         justify-content: space-between;
         align-items: flex-start;
         gap: 20px;
+        background-color: rgba(220, 53, 69, 0.2);
+        border-radius: 7px;
+        padding: 5px 2px;
+        transition: 0.7s ease;
     }
+
+    .div-li-list.is-completed { 
+        background-color: rgba(33, 136, 56, 0.2);
+    }
+
     .note-text {
         font-size: 17px;
         flex-grow: 1; 
         text-align: left; 
         word-break: break-word;
+        padding-left: 10px;
+    }
+
+    .note-list-buton{ 
+        display: flex;
+        gap: 10px;
+    }
+
+    .completed-button{ 
+        cursor: pointer;
+        color: white;
+        background-color: black;
+        border-radius: 7px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0; 
+        padding: 0px 6px;
+        transition: 0.7s ease;
+    }
+
+    .completed-button:hover { 
+        background-color: #218838;
     }
 
     .delete-button {
