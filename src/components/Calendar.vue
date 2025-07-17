@@ -13,6 +13,7 @@
     month: Number,
     year: Number, 
     selectedFullDate: Object,
+    complete: Object
   })
 
   // Определение дней в месяце
@@ -59,6 +60,12 @@
            today.getFullYear() === props.year;
   }
 
+  // Для пометки цветом в зависимости от выполненых заметок
+  function getNoteStatusForDay(day) { 
+    const dateKey = `${props.year}-${props.month}-${day}`;
+    return props.complete[dateKey] || null
+  }
+
 </script>
 
 <template>
@@ -86,6 +93,8 @@
               selected: isSelected(day),
               today: isToday(day),
               day: true,
+               'has-note': getNoteStatusForDay(day),
+               'all-complete': getNoteStatusForDay(day)?.allCompleted 
             }"
             > {{ day }} </span>
             <span v-else>&nbsp;</span>
@@ -131,6 +140,20 @@
   .day { 
     font-size: 20px;
     cursor: pointer;
+  }
+
+  .day.has-note { 
+    background-color: #dc3545;
+    padding: 7px;
+    border-radius: 10px;
+    color: white;
+  }
+
+  .day.all-complete{ 
+    background-color: #218838;
+    padding: 7px;
+    border-radius: 10px;
+    color: white;
   }
 
   .today{ 

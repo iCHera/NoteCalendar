@@ -1,8 +1,9 @@
 <script setup>
-  import { ref, computed, compile } from 'vue';
+  import { ref, computed, watch} from 'vue';
   import Calendar from './components/Calendar.vue';
   import SliderMonth from './components/SliderMonth.vue';
   import NoteItems from './components/NoteItems.vue';
+import { jsx } from 'vue/jsx-runtime';
 
   // Переменные для работы
   const selectedDate = ref(null)
@@ -31,7 +32,32 @@
   }
 
   // Все заметки что есть
-  const allNote = ref({})
+  const storageKey = 'vue-calendar-notes';
+  const allNote = ref(JSON.parse(localStorage.getItem(storageKey)) || {})
+
+  // Наблюдатель за allNote
+  watch(allNote, (newNote) => { 
+    const jsonNotes = JSON.stringify(newNote)
+    localStorage.setItem(storageKey ,jsonNotes)
+  }, {deep: true}) 
+
+  // Для изменения цвета в зависимости от того выполенные задаения или нет
+  const noteStatusMap = computed(() => { 
+    const statusMap = {}
+
+    for(const dateKey in allNote.value) { 
+      const notesOnDate = allNote.value[dateKey]
+
+      if (notesOnDate && notesOnDate.length > 0) { 
+        const allCompleted = notesOnDate.every(note => note.complete === 'isTrue');
+        statusMap[dateKey] = { 
+          hasNote: true,
+          allCompleted: allCompleted,
+        }
+      }
+    }
+    return statusMap
+  })
 
   // Определение даты для 
   const notesForSelectedDate = computed(() => { 
@@ -101,6 +127,7 @@
      :month="currentMonth"
      :year="currentYear" 
      :selected-full-date="selectedDate"
+     :complete="noteStatusMap"
      @date-selected="handleDateSelection" 
      />
     </div>
